@@ -1,10 +1,11 @@
-# Spring Microservice Template
+# Spring Microservice Monorepo Template
 
-This repository is a starting point for building **production-ready Java microservices**.
+A **production-ready Gradle monorepo** for building Java microservices.
 
 The goal is not to show off frameworks, but to give you a clean, modern baseline that:
 
 - builds reliably
+- scales to multiple services
 - is easy to extend
 - follows current enterprise conventions
 - stays out of your way
@@ -13,50 +14,64 @@ I use this as a base for real projects.
 
 ---
 
-### Architecture style: Ports and Adapters (Hexagonal)
+## Project Structure
 
-This template follows the **Ports and Adapters** (also called **Hexagonal**) architecture.
+```
+spring-microservice-monorepo/
+├── buildSrc/                              # Gradle convention plugins
+│   └── src/main/kotlin/
+│       ├── common-java.gradle.kts         # Java 21, encoding, JUnit
+│       ├── java-library-conventions.gradle.kts
+│       ├── spring-boot-app.gradle.kts     # Spring Boot applications
+│       └── protobuf-conventions.gradle.kts
+│
+├── shared-libs/                           # Shared libraries
+│   ├── common-dto/                        # Cross-service DTOs
+│   ├── common-utils/                      # Utility classes
+│   └── common-test/                       # Test utilities (Testcontainers)
+│
+├── services/                              # Microservices
+│   └── greeting-service/                  # Example service
+│       ├── domain/                        # Core business logic
+│       ├── adapters/                      # Input/output adapters
+│       └── runtime/                       # Spring Boot application
+│
+├── gradle/libs.versions.toml              # Centralized version catalog
+├── build.gradle.kts                       # Root build configuration
+├── settings.gradle.kts                    # Module includes
+└── compose.yaml                           # Local infrastructure
+```
 
-- The **core** of the system (domain + use cases) knows nothing about frameworks, databases, messaging systems, or transports.
-- Everything that touches the outside world is an **adapter**.
-- The runtime module wires the whole system together.
+---
 
-This makes the service:
-- easier to test
-- easier to change infrastructure
-- safer to extend with new transports (REST, Kafka, gRPC, MCP, WebSockets, etc.)
+## Architecture: Ports and Adapters (Hexagonal)
 
-#### How it maps to this project
+Each service follows the **Ports and Adapters** (Hexagonal) architecture:
 
-domain
-- core model + business rules
-- inbound ports (use cases)
-- outbound ports (interfaces)
+- The **core** (domain) knows nothing about frameworks, databases, or transports
+- Everything that touches the outside world is an **adapter**
+- The runtime module wires the whole system together
 
-adapters/in/
-- REST controllers
-- Kafka consumers
-- gRPC services
-- WebSocket handlers
-- MCP handlers
+### Service Module Structure
 
-adapters/out/
-- persistence (JPA, JDBC, etc.)
-- messaging producers
-- external service clients
-- caches
+```
+services/[service-name]/
+├── domain/
+│   ├── core model + business rules
+│   ├── inbound ports (use cases)
+│   └── outbound ports (interfaces)
+│
+├── adapters/
+│   ├── in/   (REST, Kafka consumers, gRPC, WebSocket)
+│   └── out/  (persistence, messaging, external clients, caches)
+│
+└── runtime/
+    ├── Spring Boot entrypoint
+    ├── wiring & configuration
+    └── database migrations
+```
 
-runtime
-- Spring Boot entrypoint
-- wiring & configuration
-- selecting which adapters are active
-
-Inbound adapters translate external input into calls on **inbound ports**.
-Outbound adapters implement **outbound ports** defined in the domain.
-
-The core never depends on adapters.
-Adapters depend on the core.
-The runtime composes everything.
+The core never depends on adapters. Adapters depend on the core. The runtime composes everything.
 
 ---
 
@@ -65,9 +80,8 @@ The runtime composes everything.
 ### Core stack
 - **Java 21 (LTS)**
 - **Spring Boot 3.5**
-- **Gradle multi-module project** (Kotlin DSL)
-
----
+- **Gradle monorepo** with convention plugins (Kotlin DSL)
+- **Type-safe project accessors** (`projects.services.greetingService.domain`)
 
 ### Runtime features
 - REST API with validation
@@ -76,12 +90,8 @@ The runtime composes everything.
 - Redis caching
 - Consistent error responses using **Problem Details**
 - Database migrations with **Flyway**
-- Actuator endpoints:
-  - health / liveness / readiness
-  - metrics / prometheus
-- Structured logging
-  - readable logs locally
-  - JSON logs via profile
+- Actuator endpoints (health, liveness, readiness, metrics, prometheus)
+- Structured logging (readable locally, JSON via profile)
 - Trace/log correlation (OpenTelemetry + W3C)
 - Distributed tracing through Kafka and gRPC
 
@@ -91,107 +101,12 @@ The runtime composes everything.
 
 ### Build & packaging
 - Gradle Wrapper (`./gradlew`)
-- Dockerfile for container builds
-- `compose.yaml` for local development (PostgreSQL, Redis, Kafka, Zookeeper)
+- Convention plugins for consistent builds across services
+- `compose.yaml` for local development
 
 ---
 
-## Infrastructure
-
-### Redis
-
-Used for caching. The `GreetingCache` port is implemented by `RedisGreetingCache`.
-
-Configuration in `application.yml`:
-```yaml
-spring:
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-```
-
-### Kafka
-
-Used for event-driven messaging. The template includes:
-- `KafkaGreetingEventPublisher` - publishes `GreetingCreatedEvent` to `greeting-events` topic
-- `KafkaGreetingEventListener` - consumes events from the same topic
-
-Configuration in `application.yml`:
-```yaml
-spring:
-  kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
-    consumer:
-      group-id: greeting-service-group
-```
-
-Trace context is automatically propagated through Kafka message headers (W3C Trace Context).
-
-### gRPC
-
-The template includes both server and client:
-- `GrpcGreetingService` - gRPC server exposing `CreateGreeting` and `GetGreeting` RPCs
-- `GrpcExternalGreetingClient` - gRPC client for calling external services
-
-Proto file: `adapters/src/main/proto/greeting.proto`
-
-Configuration in `application.yml`:
-```yaml
-grpc:
-  server:
-    port: ${GRPC_SERVER_PORT:9090}
-  client:
-    external-greeting-service:
-      address: static://${EXTERNAL_GRPC_HOST:localhost}:${EXTERNAL_GRPC_PORT:9091}
-```
-
----
-
-## Observability
-
-### Metrics
-
-Available at `/actuator/prometheus`. Includes:
-
-| Component | Metrics |
-|-----------|---------|
-| Redis | `cache_greeting_hits_total`, `cache_greeting_misses_total`, `cache_greeting_get_seconds`, `cache_greeting_put_seconds` |
-| Kafka | `kafka_greeting_events_published_total`, `kafka_greeting_events_received_total`, `kafka_greeting_events_processed_total` |
-| gRPC | `grpc_server_requests_seconds` (by method and status) |
-
-### Tracing
-
-Configured with Micrometer + OpenTelemetry bridge. Trace context flows through:
-- HTTP requests (automatic)
-- Kafka messages (via headers)
-- gRPC calls (via metadata)
-
-Set the OTLP endpoint to export traces:
-```bash
-OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
-```
-
-### Logging
-
-All adapters log with `traceId` and `spanId` in MDC. Log pattern includes these fields automatically.
-
----
-
-## Why this exists
-
-This is the setup I wish every new Java service started with:
-
-- no magic
-- no hidden coupling
-- no accidental complexity
-- no framework lock-in
-
-It is intentionally boring in the right ways.
-
----
-
-## Quick start
+## Quick Start
 
 ### Requirements
 - Java 21
@@ -208,20 +123,212 @@ This starts PostgreSQL, Redis, Kafka, and Zookeeper.
 ### Build & run tests
 
 ```bash
+# Build entire monorepo
 ./gradlew build
+
+# Build specific service
+./gradlew :services:greeting-service:runtime:build
+
+# Run unit tests only
+./gradlew test
+
+# Run integration tests
+./gradlew integrationTest
 ```
 
 ### Run the application
 
 ```bash
-./gradlew :runtime:bootRun
+./gradlew :services:greeting-service:runtime:bootRun
 ```
 
 ### Enable JSON logging
 
 ```bash
-SPRING_PROFILES_ACTIVE=json ./gradlew :runtime:bootRun
+SPRING_PROFILES_ACTIVE=json ./gradlew :services:greeting-service:runtime:bootRun
 ```
+
+---
+
+## Gradle Commands
+
+```bash
+# Build entire monorepo
+./gradlew build
+
+# Build specific service
+./gradlew :services:greeting-service:runtime:build
+
+# Run specific service
+./gradlew :services:greeting-service:runtime:bootRun
+
+# Run all tests
+./gradlew check
+
+# Run integration tests for specific service
+./gradlew :services:greeting-service:runtime:integrationTest
+
+# List all projects
+./gradlew projects
+
+# Apply code formatting
+./gradlew spotlessApply
+```
+
+---
+
+## Adding a New Service
+
+1. **Create directories:**
+   ```bash
+   mkdir -p services/[service-name]/{domain,adapters,runtime}
+   ```
+
+2. **Add to `settings.gradle.kts`:**
+   ```kotlin
+   include("services:[service-name]:domain")
+   include("services:[service-name]:adapters")
+   include("services:[service-name]:runtime")
+   ```
+
+3. **Create build files using convention plugins:**
+
+   `services/[service-name]/domain/build.gradle.kts`:
+   ```kotlin
+   plugins {
+       id("java-library-conventions")
+   }
+   ```
+
+   `services/[service-name]/adapters/build.gradle.kts`:
+   ```kotlin
+   plugins {
+       id("protobuf-conventions")  // or java-library-conventions if no gRPC
+   }
+
+   dependencies {
+       api(projects.services.[serviceName].domain)
+       // Add your dependencies
+   }
+   ```
+
+   `services/[service-name]/runtime/build.gradle.kts`:
+   ```kotlin
+   plugins {
+       id("spring-boot-app")
+   }
+
+   dependencies {
+       implementation(projects.services.[serviceName].adapters)
+       // Add your dependencies
+   }
+   ```
+
+4. **Add source code with appropriate packages** (e.g., `com.example.[servicename]`)
+
+5. **Create `application.yml`** in `runtime/src/main/resources/`
+
+---
+
+## Shared Libraries
+
+### common-dto
+Cross-service DTOs with zero framework dependencies. Examples:
+- `PageRequest` / `PageResponse`
+- `ApiError`
+- `AuditInfo`
+
+### common-utils
+Lightweight utility classes. Examples:
+- `UuidGenerator`
+- `JsonUtils`
+- `DateTimeUtils`
+
+### common-test
+Shared test infrastructure. Examples:
+- Testcontainers extensions
+- Test data builders
+
+Usage in a service:
+```kotlin
+dependencies {
+    implementation(projects.sharedLibs.commonDto)
+    testImplementation(projects.sharedLibs.commonTest)
+}
+```
+
+---
+
+## Infrastructure
+
+### Redis
+
+Used for caching. The `GreetingCache` port is implemented by `RedisGreetingCache`.
+
+```yaml
+spring:
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+```
+
+### Kafka
+
+Used for event-driven messaging:
+- `KafkaGreetingEventPublisher` - publishes to `greeting-events` topic
+- `KafkaGreetingEventListener` - consumes from the same topic
+
+```yaml
+spring:
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: greeting-service-group
+```
+
+### gRPC
+
+Server and client included:
+- `GrpcGreetingService` - exposes `CreateGreeting` and `GetGreeting` RPCs
+- `GrpcExternalGreetingClient` - calls external services
+
+Proto file: `services/greeting-service/adapters/src/main/proto/greeting.proto`
+
+```yaml
+grpc:
+  server:
+    port: ${GRPC_SERVER_PORT:9090}
+  client:
+    external-greeting-service:
+      address: static://${EXTERNAL_GRPC_HOST:localhost}:${EXTERNAL_GRPC_PORT:9091}
+```
+
+---
+
+## Observability
+
+### Metrics
+
+Available at `/actuator/prometheus`:
+
+| Component | Metrics |
+|-----------|---------|
+| Redis | `cache_greeting_hits_total`, `cache_greeting_misses_total` |
+| Kafka | `kafka_greeting_events_published_total`, `kafka_greeting_events_received_total` |
+| gRPC | `grpc_server_requests_seconds` (by method and status) |
+
+### Tracing
+
+Configured with Micrometer + OpenTelemetry. Trace context flows through HTTP, Kafka, and gRPC.
+
+```bash
+OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
+```
+
+### Logging
+
+All adapters log with `traceId` and `spanId` in MDC.
 
 ---
 
@@ -230,13 +337,13 @@ SPRING_PROFILES_ACTIVE=json ./gradlew :runtime:bootRun
 ### REST
 
 ```
-POST /api/v1/greetings     - Create a greeting
+POST /api/v1/greetings      - Create a greeting
 GET  /api/v1/greetings/{id} - Get a greeting by ID
 ```
 
 ### gRPC
 
-Port 9090 (default). Services:
+Port 9090 (default):
 - `GreetingService.CreateGreeting`
 - `GreetingService.GetGreeting`
 
@@ -254,12 +361,9 @@ Port 9090 (default). Services:
 
 ## Database Migrations
 
-This template uses **Flyway** for database schema management.
+Uses **Flyway** for schema management.
 
-Migrations live in:
-```
-runtime/src/main/resources/db/migration/
-```
+Location: `services/greeting-service/runtime/src/main/resources/db/migration/`
 
 Naming convention:
 ```
@@ -267,42 +371,38 @@ V1__create_greetings_table.sql
 V2__add_created_at_column.sql
 ```
 
-On startup, Flyway automatically applies pending migrations.
-
 ---
 
 ## Integration Tests
 
-Run all tests including integration tests:
 ```bash
+# Run all tests including integration tests
 ./gradlew check
+
+# Run integration tests separately
+./gradlew :services:greeting-service:runtime:integrationTest
 ```
 
-Or run integration tests separately:
-```bash
-./gradlew integrationTest
-```
+Integration tests use Testcontainers for PostgreSQL, Redis, and Kafka.
 
-Integration tests use Testcontainers to spin up:
-- PostgreSQL
-- Redis
-- Kafka
-
-Test files:
+Test files in `services/greeting-service/runtime/src/test/java/`:
 - `GreetingFlowIT.java` - REST API flow
 - `RedisCacheIT.java` - Cache operations
-- `KafkaMessagingIT.java` - Event publishing and consumption
+- `KafkaMessagingIT.java` - Event publishing/consumption
 - `GrpcGreetingIT.java` - gRPC server
 
 ---
 
-## How to extend this
+## Convention Plugins
 
-1. Add your domain model in `domain`
-2. Add persistence or external clients in `adapters/out`
-3. Expose endpoints in `adapters/in`
-4. Add database migrations in `runtime/src/main/resources/db/migration/`
-5. Add integration tests as needed
+Located in `buildSrc/src/main/kotlin/`:
+
+| Plugin | Purpose |
+|--------|---------|
+| `common-java` | Java 21 toolchain, UTF-8 encoding, JUnit Platform |
+| `java-library-conventions` | For domain and adapter modules |
+| `spring-boot-app` | For runtime modules (Spring Boot, test separation) |
+| `protobuf-conventions` | For modules with gRPC/protobuf |
 
 ---
 
