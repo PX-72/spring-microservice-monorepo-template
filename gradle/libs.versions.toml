@@ -1,0 +1,63 @@
+[versions]
+java = "21"
+spring-boot = "3.5.0"
+grpc = "1.68.0"
+protobuf = "4.28.2"
+grpc-spring-boot = "3.1.0.RELEASE"
+testcontainers = "2.0.3"
+logstash-logback = "8.0"
+spotless = "6.25.0"
+protobuf-plugin = "0.9.4"
+slf4j = "2.0.16"
+junit-jupiter = "5.12.2"
+
+[libraries]
+# Spring Boot starters
+spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web" }
+spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }
+spring-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }
+spring-boot-starter-data-redis = { module = "org.springframework.boot:spring-boot-starter-data-redis" }
+spring-boot-starter-validation = { module = "org.springframework.boot:spring-boot-starter-validation" }
+spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
+
+# Kafka
+spring-kafka = { module = "org.springframework.kafka:spring-kafka" }
+spring-kafka-test = { module = "org.springframework.kafka:spring-kafka-test" }
+
+# Database
+postgresql = { module = "org.postgresql:postgresql" }
+flyway-core = { module = "org.flywaydb:flyway-core" }
+flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql" }
+
+# gRPC
+grpc-spring-boot-starter = { module = "net.devh:grpc-spring-boot-starter", version.ref = "grpc-spring-boot" }
+grpc-netty-shaded = { module = "io.grpc:grpc-netty-shaded", version.ref = "grpc" }
+grpc-protobuf = { module = "io.grpc:grpc-protobuf", version.ref = "grpc" }
+grpc-stub = { module = "io.grpc:grpc-stub", version.ref = "grpc" }
+protobuf-java = { module = "com.google.protobuf:protobuf-java", version.ref = "protobuf" }
+jakarta-annotation-api = { module = "jakarta.annotation:jakarta.annotation-api" }
+javax-annotation-api = { module = "javax.annotation:javax.annotation-api", version = "1.3.2" }
+
+# Observability
+micrometer-core = { module = "io.micrometer:micrometer-core" }
+micrometer-tracing-bridge-otel = { module = "io.micrometer:micrometer-tracing-bridge-otel" }
+micrometer-registry-prometheus = { module = "io.micrometer:micrometer-registry-prometheus" }
+opentelemetry-exporter-otlp = { module = "io.opentelemetry:opentelemetry-exporter-otlp" }
+logstash-logback-encoder = { module = "net.logstash.logback:logstash-logback-encoder", version.ref = "logstash-logback" }
+
+# Logging
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+
+# Testing
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit-jupiter" }
+testcontainers-bom = { module = "org.testcontainers:testcontainers-bom", version.ref = "testcontainers" }
+testcontainers = { module = "org.testcontainers:testcontainers" }
+testcontainers-junit-jupiter = { module = "org.testcontainers:testcontainers-junit-jupiter" }
+testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql" }
+testcontainers-kafka = { module = "org.testcontainers:kafka" }
+
+[plugins]
+spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
+spring-dependency-management = { id = "io.spring.dependency-management", version = "1.1.6" }
+protobuf = { id = "com.google.protobuf", version.ref = "protobuf-plugin" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

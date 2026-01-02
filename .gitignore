@@ -1,0 +1,82 @@
+# ===============================
+# OS / Editor
+# ===============================
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+
+# IntelliJ / JetBrains
+.idea/
+*.iml
+*.iws
+*.ipr
+/out/
+
+# VS Code
+.vscode/
+
+# ===============================
+# Build Artifacts
+# ===============================
+**/target/
+**/build/
+
+# ===============================
+# Maven
+# ===============================
+.mvn/wrapper/maven-wrapper.jar
+.mvn/timing.properties
+
+# ===============================
+# Logs
+# ===============================
+*.log
+
+# ===============================
+# Test / Coverage
+# ===============================
+**/surefire-reports/
+**/failsafe-reports/
+**/jacoco/
+**/coverage/
+
+# ===============================
+# Docker
+# ===============================
+**/.docker/
+docker-compose.override.yml
+
+# ===============================
+# Runtime / Local Config
+# ===============================
+.env
+.env.*
+application-*.local.yml
+application-*.dev.yml
+
+# ===============================
+# Misc
+# ===============================
+*.tmp
+*.swp
+*.bak
+*.pid
+*.seed
+
+# ===============================
+# Node (if later added for UI)
+# ===============================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ===============================
+# Gradle (if ever added)
+# ===============================
+.gradle/
