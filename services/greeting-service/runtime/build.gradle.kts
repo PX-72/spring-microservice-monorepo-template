@@ -2,43 +2,41 @@ plugins {
     id("spring-boot-app")
 }
 
-val grpcSpringBootVersion = "3.1.0.RELEASE"
-
 dependencies {
     implementation(projects.services.greetingService.adapters)
 
     // Spring Boot starters
-    implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
-    implementation("org.springframework.boot:spring-boot-starter-validation")
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    implementation("org.springframework.boot:spring-boot-starter-data-redis")
+    implementation(libs.spring.boot.starter.web)
+    implementation(libs.spring.boot.starter.actuator)
+    implementation(libs.spring.boot.starter.validation)
+    implementation(libs.spring.boot.starter.data.jpa)
+    implementation(libs.spring.boot.starter.data.redis)
 
     // Kafka
-    implementation("org.springframework.kafka:spring-kafka")
+    implementation(libs.spring.kafka)
 
     // gRPC (for configuration classes)
-    implementation("net.devh:grpc-spring-boot-starter:$grpcSpringBootVersion")
-    implementation("io.grpc:grpc-netty-shaded:1.68.0")
-    implementation("io.grpc:grpc-protobuf:1.68.0")
-    implementation("io.grpc:grpc-stub:1.68.0")
+    implementation(libs.grpc.spring.boot.starter)
+    implementation(libs.grpc.netty.shaded)
+    implementation(libs.grpc.protobuf)
+    implementation(libs.grpc.stub)
 
     // Observability
-    implementation("io.micrometer:micrometer-tracing-bridge-otel")
-    implementation("io.opentelemetry:opentelemetry-exporter-otlp")
-    implementation("io.micrometer:micrometer-registry-prometheus")
-    implementation("net.logstash.logback:logstash-logback-encoder:8.0")
-    implementation("io.micrometer:micrometer-core")
+    implementation(libs.micrometer.tracing.bridge.otel)
+    implementation(libs.opentelemetry.exporter.otlp)
+    implementation(libs.micrometer.registry.prometheus)
+    implementation(libs.logstash.logback.encoder)
+    implementation(libs.micrometer.core)
 
     // Database migrations
-    implementation("org.flywaydb:flyway-core")
-    implementation("org.flywaydb:flyway-database-postgresql")
+    implementation(libs.flyway.core)
+    implementation(libs.flyway.postgresql)
 
     // Testing
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.testcontainers:testcontainers")
-    testImplementation("org.testcontainers:junit-jupiter")
-    testImplementation("org.testcontainers:postgresql")
-    testImplementation("org.testcontainers:kafka")
-    testImplementation("org.springframework.kafka:spring-kafka-test")
+    testImplementation(libs.spring.boot.starter.test)
+    testImplementation(libs.testcontainers)
+    testImplementation(libs.testcontainers.junit.jupiter)
+    testImplementation(libs.testcontainers.postgresql)
+    testImplementation(libs.testcontainers.kafka)
+    testImplementation(libs.spring.kafka.test)
 }

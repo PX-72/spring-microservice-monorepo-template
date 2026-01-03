@@ -62,6 +62,9 @@ grpc:
     external-greeting-service:
       address: static://${EXTERNAL_GRPC_HOST:localhost}:${EXTERNAL_GRPC_PORT:9091}
       negotiationType: plaintext
+      deadlineAfter: 5s
+      enableKeepAlive: true
+      keepAliveTimeout: 20s
 
 # OpenTelemetry exporter (optional).
 # If you run an OTLP collector, set OTEL_EXPORTER_OTLP_ENDPOINT, e.g. http://localhost:4317

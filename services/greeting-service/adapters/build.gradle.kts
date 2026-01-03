@@ -2,38 +2,36 @@ plugins {
     id("protobuf-conventions")
 }
 
-val grpcSpringBootVersion = "3.1.0.RELEASE"
-
 dependencies {
     api(projects.services.greetingService.domain)
 
     // Spring Boot starters
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.boot:spring-boot-starter-validation")
-    implementation("org.springframework.boot:spring-boot-starter-data-redis")
+    implementation(libs.spring.boot.starter.data.jpa)
+    implementation(libs.spring.boot.starter.web)
+    implementation(libs.spring.boot.starter.validation)
+    implementation(libs.spring.boot.starter.data.redis)
 
     // Kafka
-    implementation("org.springframework.kafka:spring-kafka")
+    implementation(libs.spring.kafka)
 
     // Database
-    runtimeOnly("org.postgresql:postgresql")
+    runtimeOnly(libs.postgresql)
 
     // gRPC
-    implementation("net.devh:grpc-spring-boot-starter:$grpcSpringBootVersion")
-    implementation("io.grpc:grpc-netty-shaded:1.68.0")
-    implementation("io.grpc:grpc-protobuf:1.68.0")
-    implementation("io.grpc:grpc-stub:1.68.0")
-    implementation("com.google.protobuf:protobuf-java:4.28.2")
-    implementation("jakarta.annotation:jakarta.annotation-api")
-    implementation("javax.annotation:javax.annotation-api:1.3.2")
+    implementation(libs.grpc.spring.boot.starter)
+    implementation(libs.grpc.netty.shaded)
+    implementation(libs.grpc.protobuf)
+    implementation(libs.grpc.stub)
+    implementation(libs.protobuf.java)
+    implementation(libs.jakarta.annotation.api)
+    compileOnly(libs.javax.annotation.api) // Required for gRPC generated code
 
     // Observability
-    implementation("io.micrometer:micrometer-core")
+    implementation(libs.micrometer.core)
 
     // Testing
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation(libs.spring.boot.starter.test)
+    testRuntimeOnly(libs.junit.platform.launcher)
 }
 
 sourceSets {

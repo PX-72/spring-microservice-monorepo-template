@@ -34,6 +34,10 @@ public class GrpcExternalGreetingClient implements ExternalGreetingClient {
         logger.debug("External greeting not found id={}", id);
         return Optional.empty();
       }
+      if (e.getStatus().getCode() == io.grpc.Status.Code.DEADLINE_EXCEEDED) {
+        logger.error("gRPC fetchGreeting timed out id={}", id);
+        throw new RuntimeException("Timeout fetching greeting from external service", e);
+      }
       logger.error("gRPC fetchGreeting failed id={} status={}", id, e.getStatus().getCode(), e);
       throw new RuntimeException("Failed to fetch greeting from external service", e);
     }
@@ -49,6 +53,10 @@ public class GrpcExternalGreetingClient implements ExternalGreetingClient {
       logger.info("gRPC createRemoteGreeting completed greetingId={}", greeting.id());
       return greeting;
     } catch (StatusRuntimeException e) {
+      if (e.getStatus().getCode() == io.grpc.Status.Code.DEADLINE_EXCEEDED) {
+        logger.error("gRPC createRemoteGreeting timed out name={}", name);
+        throw new RuntimeException("Timeout creating greeting on external service", e);
+      }
       logger.error(
           "gRPC createRemoteGreeting failed name={} status={}", name, e.getStatus().getCode(), e);
       throw new RuntimeException("Failed to create greeting on external service", e);
