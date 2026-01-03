@@ -3,11 +3,11 @@ package com.example.common.utils;
 import java.util.UUID;
 
 /** Utility class for UUID generation with support for testing. */
-public final class UuidGenerator {
+public class UuidGenerator {
 
   private static UuidGenerator instance = new UuidGenerator();
 
-  private UuidGenerator() {}
+  protected UuidGenerator() {}
 
   public static UuidGenerator getInstance() {
     return instance;
