@@ -13,7 +13,3 @@ include("services:greeting-service:domain")
 include("services:greeting-service:adapters")
 include("services:greeting-service:runtime")
 
-// To add a new service, follow this pattern:
-// include("services:[service-name]:domain")
-// include("services:[service-name]:adapters")
-// include("services:[service-name]:runtime")
